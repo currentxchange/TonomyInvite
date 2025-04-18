@@ -15,7 +15,15 @@ public:
   // --- User Actions ---
   [[eosio::action]] void registeruser(name user, name inviter); // User registers with an invite code
   [[eosio::action]] void claimreward(name user);                // User claims reward based on score
-  [[eosio::action]] void setconfig(name admin, uint32_t min_age_days, uint32_t rate_seconds, bool enabled); // Admin sets config
+  [[eosio::action]] void setconfig(
+      name admin, 
+      uint32_t min_age_days, 
+      uint32_t rate_seconds, 
+      bool enabled,
+      uint16_t max_depth,
+      std::vector<uint8_t> multipliers,
+      uint8_t default_mult
+  ); // Admin sets config
   [[eosio::action]] void resetuser(name user);                 // Dev-only: reset a user
 
   // === Adopter Table ===
@@ -42,6 +50,9 @@ public:
     uint32_t invite_rate_seconds = 3600; // Seconds between score updates
     bool     enabled = true;             // Toggle contract
     name     admin;                      // Contract admin
+    uint16_t max_referral_depth = 5;     // Maximum levels deep for referral rewards (default 5)
+    std::vector<uint8_t> level_multipliers; // Points multiplier for each level
+    uint8_t default_multiplier = 1;      // Default multiplier for levels beyond array
   };
 
   typedef singleton<"config"_n, config> config_table;
