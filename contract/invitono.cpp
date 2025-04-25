@@ -3,7 +3,7 @@
 // === Register User ===
 // Registers a user with a referral code and applies multi-level scoring
 void invitono::registeruser(name user, name inviter) {
-  require_auth(user);
+  check(has_auth(user) || has_auth(get_self()), "Only the user can invite");
 
   check(is_account(inviter), "Inviter account does not exist");
   check(user != inviter, "Cannot invite yourself");
@@ -24,13 +24,13 @@ void invitono::registeruser(name user, name inviter) {
   time_point_sec now = time_point_sec(current_time_point());
   time_point_sec creation_date = get_account_creation_time(user);
   check((now.sec_since_epoch() - creation_date.sec_since_epoch()) >= cfg.min_account_age_days * 86400,
-        "Account not old enough to register");
+        "Account not old enough to register"); //TODO add account age requirement to memo
 
   adopters.emplace(user, [&](auto& row) {
     row.account = user;
     row.invitedby = inviter;
     row.lastupdated = current_time_point();
-    row.score = 0;
+    row.score = 1;
     row.claimed = false;
   });
 

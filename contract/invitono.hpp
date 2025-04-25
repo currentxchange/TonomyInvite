@@ -15,9 +15,9 @@ public:
   using contract::contract;
 
   // --- User Actions ---
-  [[eosio::action]] void registeruser(name user, name inviter); // User registers with an invite code
-  [[eosio::action]] void claimreward(name user);                // User claims reward based on score
-  [[eosio::action]] void setconfig(
+  ACTION registeruser(name user, name inviter); // User registers with an invite code
+  ACTION claimreward(name user);                // User claims reward based on score
+  ACTION setconfig(
       name admin, 
       uint32_t min_age_days, 
       uint32_t rate_seconds, 
@@ -28,7 +28,7 @@ public:
       symbol reward_symbol,
       uint32_t reward_rate
   ); // Admin sets config
-  [[eosio::action]] void deleteuser(name user);                 // Dev-only: delete a user
+  ACTION deleteuser(name user);                 // Dev-only: delete a user
 
   // === Adopter Table ===
   /* Tracks each registered user and referral stats */
@@ -43,9 +43,9 @@ public:
     uint64_t by_score() const { return static_cast<uint64_t>(UINT32_MAX - score); } // Sort descending
   };
 
-  typedef multi_index<"adopters"_n, adopter,
+  using adopters_table = multi_index<"adopters"_n, adopter,
     indexed_by<"byscore"_n, const_mem_fun<adopter, uint64_t, &adopter::by_score>>
-  > adopters_table;
+  >;
 
   // === Config Singleton ===
   /* Contract configuration values */
@@ -61,7 +61,7 @@ public:
     uint32_t reward_rate = 100;          // Tokens per point in hundredths (100 = 1.00 token)
   };
 
-  typedef singleton<"config"_n, config> config_table;
+  using config_table = singleton<"config"_n, config>;
 
   // === Stats Singleton ===
   /* Global stats tracked by contract */
@@ -71,7 +71,7 @@ public:
     name     last_registered;     // Last registered user
   };
 
-  typedef singleton<"stats"_n, stats> stats_table;
+  using stats_table = singleton<"stats"_n, stats>;
 
 private:
   // --- Internal Score Updater ---
