@@ -4,20 +4,6 @@
     "types": [],
     "structs": [
         {
-            "name": "account",
-            "base": "",
-            "fields": [
-                {
-                    "name": "account_name",
-                    "type": "name"
-                },
-                {
-                    "name": "creation_date",
-                    "type": "time_point_sec"
-                }
-            ]
-        },
-        {
             "name": "adopter",
             "base": "",
             "fields": [
@@ -78,12 +64,18 @@
                     "type": "uint16"
                 },
                 {
-                    "name": "level_multipliers",
-                    "type": "bytes"
-                },
+                    "name": "multiplier",
+                    "type": "uint16"
+                }
+            ]
+        },
+        {
+            "name": "deleteuser",
+            "base": "",
+            "fields": [
                 {
-                    "name": "default_multiplier",
-                    "type": "uint8"
+                    "name": "user",
+                    "type": "name"
                 }
             ]
         },
@@ -97,16 +89,6 @@
                 },
                 {
                     "name": "inviter",
-                    "type": "name"
-                }
-            ]
-        },
-        {
-            "name": "resetuser",
-            "base": "",
-            "fields": [
-                {
-                    "name": "user",
                     "type": "name"
                 }
             ]
@@ -136,12 +118,8 @@
                     "type": "uint16"
                 },
                 {
-                    "name": "multipliers",
-                    "type": "bytes"
-                },
-                {
-                    "name": "default_mult",
-                    "type": "uint8"
+                    "name": "multiplier",
+                    "type": "uint16"
                 }
             ]
         },
@@ -171,13 +149,13 @@
             "ricardian_contract": ""
         },
         {
-            "name": "registeruser",
-            "type": "registeruser",
+            "name": "deleteuser",
+            "type": "deleteuser",
             "ricardian_contract": ""
         },
         {
-            "name": "resetuser",
-            "type": "resetuser",
+            "name": "registeruser",
+            "type": "registeruser",
             "ricardian_contract": ""
         },
         {
@@ -187,13 +165,6 @@
         }
     ],
     "tables": [
-        {
-            "name": "accounts",
-            "type": "account",
-            "index_type": "i64",
-            "key_names": [],
-            "key_types": []
-        },
         {
             "name": "adopters",
             "type": "adopter",

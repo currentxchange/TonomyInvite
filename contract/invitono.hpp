@@ -3,6 +3,8 @@
 #include <eosio/asset.hpp>
 #include <eosio/time.hpp>
 #include <eosio/singleton.hpp>
+#include <eosio/permission.hpp> 
+
 
 using namespace eosio;
 using std::string;
@@ -21,10 +23,9 @@ public:
       uint32_t rate_seconds, 
       bool enabled,
       uint16_t max_depth,
-      std::vector<uint8_t> multipliers,
-      uint8_t default_mult
+      uint16_t multiplier
   ); // Admin sets config
-  [[eosio::action]] void resetuser(name user);                 // Dev-only: reset a user
+  [[eosio::action]] void deleteuser(name user);                 // Dev-only: delete a user
 
   // === Adopter Table ===
   /* Tracks each registered user and referral stats */
@@ -51,8 +52,7 @@ public:
     bool     enabled = true;             // Toggle contract
     name     admin;                      // Contract admin
     uint16_t max_referral_depth = 5;     // Maximum levels deep for referral rewards (default 5)
-    std::vector<uint8_t> level_multipliers; // Points multiplier for each level
-    uint8_t default_multiplier = 1;      // Default multiplier for levels beyond array
+    uint16_t multiplier = 100;           // Score multiplier (100 = 1.0x)
   };
 
   typedef singleton<"config"_n, config> config_table;
@@ -67,25 +67,12 @@ public:
 
   typedef singleton<"stats"_n, stats> stats_table;
 
-  // === Account Table ===
-  /* Tracks account metadata from eosio system */
-  TABLE account {
-    name         account_name;
-    time_point_sec creation_date;
-
-    uint64_t primary_key() const { return account_name.value; }
-  };
-  typedef eosio::multi_index<"accounts"_n, account> accounts_table;
-
 private:
   // --- Internal Score Updater ---
   void update_scores(name direct_inviter); // Updates inviter and their inviter
 
-  // --- Get Account Metadata ---
-  time_point_sec get_account_creation(name user);
-
   // --- Tetrahedral Series Array ---
-  const std::vector<uint32_t> TETRAHEDRAL = {1, 4, 10, 20, 35, 56, 84, 120, 165, 220, 286, 364, 455, 560, 680, 816, 969, 1140, 1330, 1540, 1771, 2024, 2300, 2600, 4294967295};
+  const std::vector<uint32_t> TETRAHEDRAL = {1, 4, 10, 20, 35, 56, 84, 120, 165, 220, 286, 364, 455, 560, 680, 816, 969, 1140, 1330, 1540, 1771, 2024, 2300, 2600, 999999999};
 
   // --- Tetrahedral Series Position Calculation ---
   uint32_t calculate_tetrahedral_position(uint32_t score) {
