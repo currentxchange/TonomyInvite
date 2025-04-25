@@ -23,7 +23,10 @@ public:
       uint32_t rate_seconds, 
       bool enabled,
       uint16_t max_depth,
-      uint16_t multiplier
+      uint16_t multiplier,
+      name token_contract,
+      symbol reward_symbol,
+      uint32_t reward_rate
   ); // Admin sets config
   [[eosio::action]] void deleteuser(name user);                 // Dev-only: delete a user
 
@@ -53,6 +56,9 @@ public:
     name     admin;                      // Contract admin
     uint16_t max_referral_depth = 5;     // Maximum levels deep for referral rewards (default 5)
     uint16_t multiplier = 100;           // Score multiplier (100 = 1.0x)
+    name     token_contract;             // Token contract account
+    symbol   reward_symbol;              // Token symbol for rewards
+    uint32_t reward_rate = 1;            // How many tokens per score point
   };
 
   typedef singleton<"config"_n, config> config_table;

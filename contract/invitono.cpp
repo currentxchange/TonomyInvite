@@ -95,7 +95,7 @@ void invitono::update_scores(name direct_inviter) {
 // === Claim Reward ===
 // Mints tokens based on invite score (1 TOKEN per point)
 void invitono::claimreward(name user) {
-  require_auth(user);
+  check(has_auth(user) || has_auth(get_self()), "Only the user or contract can claim rewards");
 
   // Add config check
   config_table conf(get_self(), get_self().value);
@@ -118,15 +118,17 @@ void invitono::claimreward(name user) {
   // Calculate position in tetrahedral series
   uint32_t position = calculate_tetrahedral_position(score);
   
-  // Convert to asset with overflow check
-  check(position <= UINT32_MAX / 10000, "Position overflow");
-  asset reward = asset(static_cast<int64_t>(position) * 10000, symbol("TOKEN", 4));
+  // Convert to asset with overflow check using symbol precision and reward rate
+  uint8_t precision = cfg.reward_symbol.precision();
+  int64_t amount = static_cast<int64_t>(position) * static_cast<int64_t>(pow(10, precision)) * cfg.reward_rate;
+  check(position <= UINT32_MAX / static_cast<uint32_t>(pow(10, precision)) / cfg.reward_rate, "Position overflow");
+  asset reward = asset(amount, cfg.reward_symbol);
 
   // Note: Balance check requires token contract integration
   // Assuming standard eosio.token contract
   action(
     permission_level{get_self(), "active"_n},
-    "eosio.token"_n,
+    cfg.token_contract,
     "transfer"_n,
     std::make_tuple(get_self(), user, reward, std::string("Invitono tetrahedral position reward"))
   ).send();
@@ -140,7 +142,10 @@ void invitono::setconfig(
     uint32_t rate_seconds, 
     bool enabled,
     uint16_t max_depth,
-    uint16_t multiplier
+    uint16_t multiplier,
+    name token_contract,
+    symbol reward_symbol,
+    uint32_t reward_rate
 ) {
     config_table conf(get_self(), get_self().value);
 
@@ -148,6 +153,9 @@ void invitono::setconfig(
     check(max_depth > 0 && max_depth <= 100, "Invalid depth (1-100)");
     check(multiplier > 0 && multiplier <= 1000, "Invalid multiplier (1-1000)");
     check(is_account(admin), "New admin account does not exist");
+    check(is_account(token_contract), "Token contract account does not exist");
+    check(reward_symbol.is_valid(), "Invalid reward symbol");
+    check(reward_rate > 0, "Reward rate must be positive");
 
     // Handle first-time initialization
     if (!conf.exists()) {
@@ -158,7 +166,10 @@ void invitono::setconfig(
             .enabled = enabled,
             .admin = admin,
             .max_referral_depth = max_depth,
-            .multiplier = multiplier
+            .multiplier = multiplier,
+            .token_contract = token_contract,
+            .reward_symbol = reward_symbol,
+            .reward_rate = reward_rate
         }, get_self());
         return;
     }
@@ -177,7 +188,10 @@ void invitono::setconfig(
         .enabled = enabled,
         .admin = admin,
         .max_referral_depth = max_depth,
-        .multiplier = multiplier
+        .multiplier = multiplier,
+        .token_contract = token_contract,
+        .reward_symbol = reward_symbol,
+        .reward_rate = reward_rate
     }, get_self());
 }
 
