@@ -58,7 +58,7 @@ public:
     uint16_t multiplier = 100;           // Score multiplier (100 = 1.0x)
     name     token_contract;             // Token contract account
     symbol   reward_symbol;              // Token symbol for rewards
-    uint32_t reward_rate = 1;            // How many tokens per score point
+    uint32_t reward_rate = 100;          // Tokens per point in hundredths (100 = 1.00 token)
   };
 
   typedef singleton<"config"_n, config> config_table;
