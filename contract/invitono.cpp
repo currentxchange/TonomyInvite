@@ -24,12 +24,12 @@ void invitono::registeruser(name user, name inviter) {
   time_point_sec now = time_point_sec(current_time_point());
   time_point_sec creation_date = get_account_creation_time(user);
   check((now.sec_since_epoch() - creation_date.sec_since_epoch()) >= cfg.min_account_age_days * 86400,
-        "Account not old enough to register"); //TODO add account age requirement to memo
+        "Account must be at least " + std::to_string(cfg.min_account_age_days) + " days old to register");
 
   adopters.emplace(user, [&](auto& row) {
     row.account = user;
     row.invitedby = inviter;
-    row.lastupdated = current_time_point();
+    row.lastupdated = current_time_point().sec_since_epoch();
     row.score = 1;
     row.claimed = false;
   });
@@ -51,7 +51,6 @@ void invitono::update_scores(name direct_inviter) {
     adopters_table adopters(get_self(), get_self().value);
     config_table conf(get_self(), get_self().value);
     auto cfg = conf.get_or_default();
-    time_point now = current_time_point();
 
     std::vector<std::pair<name, uint16_t>> upline;
     uint16_t current_level = 1;
@@ -70,11 +69,11 @@ void invitono::update_scores(name direct_inviter) {
     for (const auto& [account, level] : upline) {
         auto itr = adopters.find(account.value);
         if (itr != adopters.end()) {
-            if ((now.sec_since_epoch() - itr->lastupdated.sec_since_epoch()) >= cfg.invite_rate_seconds) {
+            if ((current_time_point().sec_since_epoch() - itr->lastupdated) >= cfg.invite_rate_seconds) {
 
                 adopters.modify(itr, same_payer, [&](auto& row) {
                     row.score += 1;
-                    row.lastupdated = now;
+                    row.lastupdated = current_time_point().sec_since_epoch();
                 });
             }
         }

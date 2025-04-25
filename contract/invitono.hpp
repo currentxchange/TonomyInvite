@@ -35,7 +35,7 @@ public:
   TABLE adopter {
     name        account;          // WAX account
     name        invitedby;        // Who invited them
-    time_point  lastupdated;      // Last time their score was updated
+    uint32_t    lastupdated;      // Last time their score was updated (seconds since epoch)
     uint32_t    score = 0;        // Referral score
     bool        claimed = false;  // Whether they've claimed
 
