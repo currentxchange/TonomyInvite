@@ -72,6 +72,18 @@
                 {
                     "name": "admin",
                     "type": "name"
+                },
+                {
+                    "name": "max_referral_depth",
+                    "type": "uint16"
+                },
+                {
+                    "name": "level_multipliers",
+                    "type": "bytes"
+                },
+                {
+                    "name": "default_multiplier",
+                    "type": "uint8"
                 }
             ]
         },
@@ -118,6 +130,18 @@
                 {
                     "name": "enabled",
                     "type": "bool"
+                },
+                {
+                    "name": "max_depth",
+                    "type": "uint16"
+                },
+                {
+                    "name": "multipliers",
+                    "type": "bytes"
+                },
+                {
+                    "name": "default_mult",
+                    "type": "uint8"
                 }
             ]
         },

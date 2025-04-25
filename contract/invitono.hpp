@@ -83,4 +83,18 @@ private:
 
   // --- Get Account Metadata ---
   time_point_sec get_account_creation(name user);
+
+  // --- Tetrahedral Series Array ---
+  const std::vector<uint32_t> TETRAHEDRAL = {1, 4, 10, 20, 35, 56, 84, 120, 165, 220, 286, 364, 455, 560, 680, 816, 969, 1140, 1330, 1540, 1771, 2024, 2300, 2600, 4294967295};
+
+  // --- Tetrahedral Series Position Calculation ---
+  uint32_t calculate_tetrahedral_position(uint32_t score) {
+    // Find the largest n where T(n) <= score
+    for (size_t i = 0; i < TETRAHEDRAL.size(); i++) {
+      if (TETRAHEDRAL[i] > score) {
+        return i; // Return the index where we exceeded the score
+      }
+    }
+    return TETRAHEDRAL.size() - 1; // Return last position if score is very large
+  }
 };

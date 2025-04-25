@@ -118,9 +118,12 @@ void invitono::claimreward(name user) {
     row.claimed = true;
   });
 
-  // Calculate reward with overflow check
-  check(score <= UINT32_MAX / 10000, "Score overflow");
-  asset reward = asset(static_cast<int64_t>(score) * 10000, symbol("TOKEN", 4));
+  // Calculate position in tetrahedral series
+  uint32_t position = calculate_tetrahedral_position(score);
+  
+  // Convert to asset with overflow check
+  check(position <= UINT32_MAX / 10000, "Position overflow");
+  asset reward = asset(static_cast<int64_t>(position) * 10000, symbol("TOKEN", 4));
 
   // Note: Balance check requires token contract integration
   // Assuming standard eosio.token contract
@@ -128,7 +131,7 @@ void invitono::claimreward(name user) {
     permission_level{get_self(), "active"_n},
     "eosio.token"_n,
     "transfer"_n,
-    std::make_tuple(get_self(), user, reward, std::string("Invitono referral reward"))
+    std::make_tuple(get_self(), user, reward, std::string("Invitono tetrahedral position reward"))
   ).send();
 }
 
