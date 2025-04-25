@@ -66,6 +66,18 @@
                 {
                     "name": "multiplier",
                     "type": "uint16"
+                },
+                {
+                    "name": "token_contract",
+                    "type": "name"
+                },
+                {
+                    "name": "reward_symbol",
+                    "type": "symbol"
+                },
+                {
+                    "name": "reward_rate",
+                    "type": "uint32"
                 }
             ]
         },
@@ -120,6 +132,18 @@
                 {
                     "name": "multiplier",
                     "type": "uint16"
+                },
+                {
+                    "name": "token_contract",
+                    "type": "name"
+                },
+                {
+                    "name": "reward_symbol",
+                    "type": "symbol"
+                },
+                {
+                    "name": "reward_rate",
+                    "type": "uint32"
                 }
             ]
         },

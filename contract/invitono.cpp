@@ -120,8 +120,9 @@ void invitono::claimreward(name user) {
   
   // Convert to asset with overflow check using symbol precision and reward rate
   uint8_t precision = cfg.reward_symbol.precision();
-  int64_t amount = static_cast<int64_t>(position) * static_cast<int64_t>(pow(10, precision)) * cfg.reward_rate;
-  check(position <= UINT32_MAX / static_cast<uint32_t>(pow(10, precision)) / cfg.reward_rate, "Position overflow");
+  // reward_rate is in hundredths (e.g., 100 = 1.00 token)
+  int64_t amount = (static_cast<int64_t>(position) * static_cast<int64_t>(pow(10, precision)) * cfg.reward_rate) / 100;
+  check(position <= UINT32_MAX / static_cast<uint32_t>(pow(10, precision)) * 100 / cfg.reward_rate, "Position overflow");
   asset reward = asset(amount, cfg.reward_symbol);
 
   // Note: Balance check requires token contract integration
