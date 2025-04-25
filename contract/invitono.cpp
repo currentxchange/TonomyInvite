@@ -71,20 +71,9 @@ void invitono::update_scores(name direct_inviter) {
         auto itr = adopters.find(account.value);
         if (itr != adopters.end()) {
             if ((now.sec_since_epoch() - itr->lastupdated.sec_since_epoch()) >= cfg.invite_rate_seconds) {
-                // Calculate tetrahedral position for this user
-                uint32_t position = calculate_tetrahedral_position(itr->score);
-                
-                // Ensure minimum increment of 1
-                position = position > 0 ? position : 1;
-                
-                // Calculate final multiplier: position * (multiplier/100)
-                uint32_t final_multiplier = position * (cfg.multiplier / 100);
-                
-                // Ensure at least 1 point is added
-                final_multiplier = final_multiplier > 0 ? final_multiplier : 1;
-                
+
                 adopters.modify(itr, same_payer, [&](auto& row) {
-                    row.score += final_multiplier;
+                    row.score += 1;
                     row.lastupdated = now;
                 });
             }
