@@ -99,7 +99,6 @@ void invitono::claimreward(name user) {
   // - Contract status check
   config_table conf(get_self(), get_self().value);
   auto cfg = conf.get_or_default();
-  check(cfg.enabled, "Contract is currently disabled");
 
   // - User validation
   adopters_table adopters(get_self(), get_self().value);
