@@ -114,16 +114,10 @@ void invitono::claimreward(name user) {
   adopters_table adopters(get_self(), get_self().value);
   auto itr = adopters.find(user.value);
   check(itr != adopters.end(), "🎧 We can't find you in our records");
-  check(!itr->claimed, "🎶 You've already claimed your rewards");
 
   // - Score validation
   uint32_t score = itr->score;
   check(score > 0, "🎼 You don't have any rewards to claim yet");
-
-  // - Mark as claimed
-  adopters.modify(itr, same_payer, [&](auto& row) {
-    row.claimed = true;
-  });
 
   // - Calculate reward position
   uint32_t position = calculate_tetrahedral_position(score);
@@ -134,12 +128,18 @@ void invitono::claimreward(name user) {
   check(position <= UINT32_MAX / static_cast<uint32_t>(pow(10, precision)) * 100 / cfg.reward_rate, "🎚️ Position calculation overflow");
   asset reward = asset(amount, cfg.reward_symbol);
 
+  // - Mark as claimed and reset score
+  adopters.modify(itr, same_payer, [&](auto& row) {
+    row.claimed = true;
+    row.score = 0;  // Reset score after claiming
+  });
+
   // - Transfer reward tokens
   action(
     permission_level{get_self(), "active"_n},
     cfg.token_contract,
     "transfer"_n,
-    std::make_tuple(get_self(), user, reward, std::string("🎵 Thanks for growing the cXc.world Music Map! Your invitation rewards are here!"))
+    std::make_tuple(get_self(), user, reward, std::string("🎵 Thanks for making yourself heard on the Web4 Music Map! 🔺 Use your invite rewards to upvote on cXc.world."))
   ).send();
 }//END claimreward()
 
