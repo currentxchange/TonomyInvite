@@ -92,7 +92,7 @@
             ]
         },
         {
-            "name": "registeruser",
+            "name": "redeeminvite",
             "base": "",
             "fields": [
                 {
@@ -178,8 +178,8 @@
             "ricardian_contract": ""
         },
         {
-            "name": "registeruser",
-            "type": "registeruser",
+            "name": "redeeminvite",
+            "type": "redeeminvite",
             "ricardian_contract": ""
         },
         {

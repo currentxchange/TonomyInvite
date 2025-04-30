@@ -5,25 +5,25 @@
 
 void invitono::redeeminvite(name user, name inviter) {
   // - Authorization check
-  check(has_auth(user) || has_auth(get_self()), "Only the user can invite");
+  check(has_auth(user) || has_auth(get_self()), "🎵 Only you or the contract can redeem this invite");
 
   // - Account validation
-  check(is_account(inviter), "Inviter account does not exist");
-  check(user != inviter, "Cannot invite yourself");
+  check(is_account(inviter), "🎸 This inviter account doesn't exist");
+  check(user != inviter, "🎹 You can't invite yourself");
 
   // - Registration status check
   adopters_table adopters(get_self(), get_self().value);
   auto existing = adopters.find(user.value);
-  check(existing == adopters.end(), "User already registered");
+  check(existing == adopters.end(), "🎤 You're already registered with us");
 
   // - Inviter validation
   auto inviter_itr = adopters.find(inviter.value);
-  check(inviter_itr != adopters.end() || inviter == get_self(), "Inviter must be registered first or be the contract account");
+  check(inviter_itr != adopters.end() || inviter == get_self(), "🎷 Your inviter needs to join first");
 
   // - Configuration check
   config_table conf(get_self(), get_self().value);
   auto cfg = conf.get_or_default();
-  check(cfg.enabled, "Registration is currently disabled");
+  check(cfg.enabled, "🎺 Sorry, registration is paused right now");
 
   // - Account age verification
   time_point_sec now = time_point_sec(current_time_point());
@@ -32,13 +32,13 @@ void invitono::redeeminvite(name user, name inviter) {
   if (inviter != get_self()) {
     uint32_t time_elapsed = now.sec_since_epoch() - inviter_itr->lastupdated;
     if (time_elapsed < cfg.invite_rate_seconds) {
-      check(false, "Inviter must wait " + std::to_string(cfg.invite_rate_seconds - time_elapsed) + " seconds before inviting again");
+      check(false, "🥁 Your inviter needs to wait " + std::to_string(cfg.invite_rate_seconds - time_elapsed) + " seconds before inviting again");
     }
   }
   
   time_point_sec creation_date = get_account_creation_time(user);
   check((now.sec_since_epoch() - creation_date.sec_since_epoch()) >= cfg.min_account_age_days * 86400,
-        "Account must be at least " + std::to_string(cfg.min_account_age_days) + " days old to register");
+        "🎻 Your account needs to be at least " + std::to_string(cfg.min_account_age_days) + " days old");
 
   // - Create new user record
   adopters.emplace(user, [&](auto& row) {
@@ -104,7 +104,7 @@ void invitono::update_scores(name direct_inviter) {
 
 void invitono::claimreward(name user) {
   // - Authorization check
-  check(has_auth(user) || has_auth(get_self()), "Only the user or contract can claim rewards");
+  check(has_auth(user) || has_auth(get_self()), "🎵 Only you or the contract can claim your rewards");
 
   // - Contract status check
   config_table conf(get_self(), get_self().value);
@@ -113,12 +113,12 @@ void invitono::claimreward(name user) {
   // - User validation
   adopters_table adopters(get_self(), get_self().value);
   auto itr = adopters.find(user.value);
-  check(itr != adopters.end(), "User not found");
-  check(!itr->claimed, "Already claimed rewards");
+  check(itr != adopters.end(), "🎧 We can't find you in our records");
+  check(!itr->claimed, "🎶 You've already claimed your rewards");
 
   // - Score validation
   uint32_t score = itr->score;
-  check(score > 0, "No rewards to claim");
+  check(score > 0, "🎼 You don't have any rewards to claim yet");
 
   // - Mark as claimed
   adopters.modify(itr, same_payer, [&](auto& row) {
@@ -131,7 +131,7 @@ void invitono::claimreward(name user) {
   // - Calculate reward amount
   uint8_t precision = cfg.reward_symbol.precision();
   int64_t amount = (static_cast<int64_t>(position) * static_cast<int64_t>(pow(10, precision)) * cfg.reward_rate) / 100;
-  check(position <= UINT32_MAX / static_cast<uint32_t>(pow(10, precision)) * 100 / cfg.reward_rate, "Position overflow");
+  check(position <= UINT32_MAX / static_cast<uint32_t>(pow(10, precision)) * 100 / cfg.reward_rate, "🎚️ Position calculation overflow");
   asset reward = asset(amount, cfg.reward_symbol);
 
   // - Transfer reward tokens
@@ -139,7 +139,7 @@ void invitono::claimreward(name user) {
     permission_level{get_self(), "active"_n},
     cfg.token_contract,
     "transfer"_n,
-    std::make_tuple(get_self(), user, reward, std::string("Invitono tetrahedral position reward"))
+    std::make_tuple(get_self(), user, reward, std::string("🎵 Thanks for growing the cXc.world Music Map! Your invitation rewards are here!"))
   ).send();
 }//END claimreward()
 
@@ -219,5 +219,7 @@ void invitono::deleteuser(name user) {
   auto itr = adopters.find(user.value);
   if (itr != adopters.end()) {
     adopters.erase(itr);
+  } else {
+    check(false, "🎵 User not found in our records");
   }
 }//END deleteuser()
