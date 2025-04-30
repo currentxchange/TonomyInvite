@@ -19,7 +19,7 @@ public:
   // --- Core user interactions --- //
 
   // - Register new user with invite code
-  ACTION registeruser(name user, name inviter);
+  ACTION redeeminvite(name user, name inviter);
 
   // - Claim rewards based on score
   ACTION claimreward(name user);

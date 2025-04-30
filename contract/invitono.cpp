@@ -3,7 +3,7 @@
 // === Register User === //
 // --- Registers a user with a referral code and applies multi-level scoring --- //
 
-void invitono::registeruser(name user, name inviter) {
+void invitono::redeeminvite(name user, name inviter) {
   // - Authorization check
   check(has_auth(user) || has_auth(get_self()), "Only the user can invite");
 
@@ -18,7 +18,7 @@ void invitono::registeruser(name user, name inviter) {
 
   // - Inviter validation
   auto inviter_itr = adopters.find(inviter.value);
-  check(inviter_itr != adopters.end(), "Inviter must be registered first");
+  check(inviter_itr != adopters.end() || inviter == get_self(), "Inviter must be registered first or be the contract account");
 
   // - Configuration check
   config_table conf(get_self(), get_self().value);
@@ -27,6 +27,15 @@ void invitono::registeruser(name user, name inviter) {
 
   // - Account age verification
   time_point_sec now = time_point_sec(current_time_point());
+  
+  // - Rate limit check for inviter
+  if (inviter != get_self()) {
+    uint32_t time_elapsed = now.sec_since_epoch() - inviter_itr->lastupdated;
+    if (time_elapsed < cfg.invite_rate_seconds) {
+      check(false, "Inviter must wait " + std::to_string(cfg.invite_rate_seconds - time_elapsed) + " seconds before inviting again");
+    }
+  }
+  
   time_point_sec creation_date = get_account_creation_time(user);
   check((now.sec_since_epoch() - creation_date.sec_since_epoch()) >= cfg.min_account_age_days * 86400,
         "Account must be at least " + std::to_string(cfg.min_account_age_days) + " days old to register");
@@ -50,7 +59,7 @@ void invitono::registeruser(name user, name inviter) {
 
   // - Update referral scores
   update_scores(inviter);
-}//END registeruser()
+}//END redeeminvite()
 
 // === Update Scores === //
 // --- Applies +1 score to inviter and their upline if cooldown has passed --- //
@@ -60,6 +69,9 @@ void invitono::update_scores(name direct_inviter) {
     adopters_table adopters(get_self(), get_self().value);
     config_table conf(get_self(), get_self().value);
     auto cfg = conf.get_or_default();
+
+    // - Skip if inviter is contract account
+    if (direct_inviter == get_self()) return;
 
     // - Build upline chain
     std::vector<std::pair<name, uint16_t>> upline;
@@ -79,12 +91,10 @@ void invitono::update_scores(name direct_inviter) {
     for (const auto& [account, level] : upline) {
         auto itr = adopters.find(account.value);
         if (itr != adopters.end()) {
-            if ((current_time_point().sec_since_epoch() - itr->lastupdated) >= cfg.invite_rate_seconds) {
-                adopters.modify(itr, same_payer, [&](auto& row) {
-                    row.score += 1;
-                    row.lastupdated = current_time_point().sec_since_epoch();
-                });
-            }
+            adopters.modify(itr, same_payer, [&](auto& row) {
+                row.score += 1;
+                row.lastupdated = current_time_point().sec_since_epoch();
+            });
         }
     }
 }//END update_scores()
@@ -151,7 +161,7 @@ void invitono::setconfig(
     config_table conf(get_self(), get_self().value);
 
     // - Parameter validation
-    check(max_depth > 0 && max_depth <= 100, "Invalid depth (1-100)");
+    check(max_depth > 0 && max_depth <= 10, "Invalid depth (1-10)");
     check(multiplier > 0 && multiplier <= 1000, "Invalid multiplier (1-1000)");
     check(is_account(admin), "New admin account does not exist");
     check(is_account(token_contract), "Token contract account does not exist");
