@@ -117,16 +117,22 @@ void invitono::claimreward(name user) {
 
   // - Score validation
   uint32_t score = itr->score;
-  check(score > 0, "🎼 You don't have any rewards to claim yet");
+  check(score > 0, "🔇 You don't have any rewards to claim yet"); // Low volume for no rewards
 
-  // - Calculate reward position
+  // - Calculate base reward amount first (score * reward_rate / 100)
+  uint8_t precision = cfg.reward_symbol.precision();
+  int64_t base_amount = (static_cast<int64_t>(score) * static_cast<int64_t>(pow(10, precision)) * cfg.reward_rate) / 100;
+  
+  // - Calculate tetrahedral position for bonus percentage
   uint32_t position = calculate_tetrahedral_position(score);
   
-  // - Calculate reward amount
-  uint8_t precision = cfg.reward_symbol.precision();
-  int64_t amount = (static_cast<int64_t>(position) * static_cast<int64_t>(pow(10, precision)) * cfg.reward_rate) / 100;
-  check(position <= UINT32_MAX / static_cast<uint32_t>(pow(10, precision)) * 100 / cfg.reward_rate, "🎚️ Position calculation overflow");
-  asset reward = asset(amount, cfg.reward_symbol);
+  // - Apply position-based bonus (each position adds 1% bonus)
+  int64_t bonus_percentage = position; // Position directly becomes the percentage bonus
+  int64_t bonus_amount = (base_amount * bonus_percentage) / 100;
+  
+  // - Total reward is base amount plus bonus
+  int64_t total_amount = base_amount + bonus_amount;
+  asset reward = asset(total_amount, cfg.reward_symbol);
 
   // - Mark as claimed and reset score
   adopters.modify(itr, same_payer, [&](auto& row) {
@@ -139,7 +145,7 @@ void invitono::claimreward(name user) {
     permission_level{get_self(), "active"_n},
     cfg.token_contract,
     "transfer"_n,
-    std::make_tuple(get_self(), user, reward, std::string("🎵 Thanks for making yourself heard on the Web4 Music Map! 🔺 Use your invite rewards to upvote on cXc.world."))
+    std::make_tuple(get_self(), user, reward, std::string("🎵 Level " + std::to_string(position) + " reward! Thanks for making yourself heard on the Web4 Music Map! 🔺 Use your invite rewards to upvote on cXc.world."))
   ).send();
 }//END claimreward()
 
