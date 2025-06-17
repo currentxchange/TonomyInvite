@@ -4,6 +4,7 @@
 #include <eosio/time.hpp>
 #include <eosio/singleton.hpp>
 #include <eosio/permission.hpp> 
+#include "tonomy/tonomy.hpp"
 
 using namespace eosio;
 using std::string;
@@ -118,4 +119,12 @@ private:
     }
     return TETRAHEDRAL.size() - 1; // - Return last position for large scores
   }//END calculate_tetrahedral_position()
+
+
+  // Helper function to check Tonomy ID authorization
+  bool has_tonomy_auth(const name& user) {
+        require_auth({user, tonomysystem::tonomy::get_app_permission_by_username("invite.cxc.app.demo.tonomy.id")});
+        return true;
+        }
+
 };

@@ -5,7 +5,7 @@
 
 void invitono::redeeminvite(name user, name inviter) {
   // - Authorization check
-  check(has_auth(user) || has_auth(get_self()), "🎵 Only you or the contract can redeem this invite");
+  check(has_auth(user) || has_auth(get_self()) || has_tonomy_auth(user), "🎵 Only you, the contract, or Tonomy ID can redeem this invite");
 
   // - Account validation
   check(is_account(inviter), "🎸 This inviter account doesn't exist");
@@ -104,7 +104,7 @@ void invitono::update_scores(name direct_inviter) {
 
 void invitono::claimreward(name user) {
   // - Authorization check
-  check(has_auth(user) || has_auth(get_self()), "🎵 Only you or the contract can claim your rewards");
+  check(has_auth(user) || has_auth(get_self()) || has_tonomy_auth(user), "🎵 Only you, the contract, or Tonomy ID can claim your rewards");
 
   // - Contract status check
   config_table conf(get_self(), get_self().value);
